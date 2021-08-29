@@ -3,16 +3,29 @@ const args = process.argv
 const chokidar = require('chokidar')
 
 class Watcher {
-  constructor({ onTreeUpdated }) {
+  constructor({ onFileAdded, onFileDeleted, onDirectoryAdded, onDirectoryDeleted }) {
     // The first 2 args are always node and the path to this file.
     // We only care about the args thereafter.
-    this.directoryPaths = args.slice(2, args.length)
+    this._directoryPaths = args.slice(2, args.length)
     this.watcher = null
 
-    this.tree = {}
+    // We track our own tree for when clients first connect
+    this._tree = {}
 
-    // A function here to be called every time the tree is updated.
-    this._onTreeUpdated = onTreeUpdated
+    // But emit events for every change so that we don't
+    // have to send the whole tree every time.
+    this.onFileAdded = onFileAdded
+    this.onFileDeleted = onFileDeleted
+    this.onDirectoryAdded = onDirectoryAdded
+    this.onDirectoryDeleted = onDirectoryDeleted
+  }
+
+  get directoryPaths() {
+    return this._directoryPaths
+  }
+
+  get tree() {
+    return this._tree
   }
 
   watch() {
@@ -25,7 +38,7 @@ class Watcher {
       .on('addDir', path => this.onAddDir(path))
       .on('unlinkDir', path => this.onUnlinkDir(path))
       .on('error', error => this.onError(error))
-      .on('ready', () => console.log('Initial scan complete. Ready for changes tree:', this.tree))
+      .on('ready', () => console.log('Initial scan complete. Ready for changes tree:', this._tree))
   }
 
   onAdd(path) {
@@ -33,10 +46,10 @@ class Watcher {
 
     const { filename, directory } =this._getFilePathAndDirectory(path)
 
-    this.tree[directory] = this.tree[directory] || []
-    this.tree[directory] = [...this.tree[directory], filename]
+    this._tree[directory] = this._tree[directory] || []
+    this._tree[directory] = [...this._tree[directory], filename]
 
-    this._onTreeUpdated(this.tree)
+    this.onFileAdded({ filename, directory })
   }
 
   onChange(path) {
@@ -52,25 +65,25 @@ class Watcher {
 
     const { filename, directory } = this._getFilePathAndDirectory(path)
 
-    this.tree[directory] = this.tree[directory].filter(fname => fname !== filename)
+    this._tree[directory] = this._tree[directory].filter(fname => fname !== filename)
 
-    this._onTreeUpdated(this.tree)
+    this.onFileDeleted({ filename, directory })
   }
 
   onAddDir(path) {
     console.log(`Directory ${path} has been added`)
     // Add a key to the tree
-    this.tree[path] = []
+    this._tree[path] = []
 
-    this._onTreeUpdated(this.tree)
+    this.onDirectoryAdded({ directory: path })
   }
 
   onUnlinkDir(path) {
     console.log(`Directory ${path} has been removed`)
     // Remove the directory from the tree.
-    delete this.tree[path]
+    delete this._tree[path]
 
-    this._onTreeUpdated(this.tree)
+    this.onDirectoryDeleted({ directory: path })
   }
 
   onError(error) {
