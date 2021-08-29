@@ -1,0 +1,8 @@
+{
+  "name": "file-explorer",
+  "version": "1.0.0",
+  "description": "A \"vs-code like\" file explorer.",
+  "main": "file-ex\t",
+  "author": "astopo <amy.soetopo@gmail.com>",
+  "license": "MIT"
+}
