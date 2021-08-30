@@ -10,6 +10,7 @@ class Watcher {
     // The first 2 args are always node and the path to this file.
     // We only care about the args thereafter.
     this._directoryPaths = args.slice(2, args.length)
+    console.log(this._directoryPaths)
     this.watcher = null
 
     // We track our own tree for when clients first connect

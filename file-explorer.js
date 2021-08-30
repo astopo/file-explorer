@@ -1,5 +1,5 @@
 const Watcher = require('./services/watcher')
-const watcher = new Watcher({ onFileAdded, onFileDeleted, onDirectoryAdded, onDirectoryRemoved })
+const watcher = new Watcher({ onFileAdded, onFileDeleted, onDirectoryAdded, onDirectoryDeleted })
 
 // Start the watcher.
 watcher.watch()
@@ -48,6 +48,6 @@ function onDirectoryAdded({ directory }) {
   io.emit('directoryAdded', { directory })
 }
 
-function onDirectoryRemoved({ directory }) {
-  io.emit('directoryRemoved', { directory })
+function onDirectoryDeleted({ directory }) {
+  io.emit('directoryDeleted', { directory })
 }
