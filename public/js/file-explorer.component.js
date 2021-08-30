@@ -35,10 +35,10 @@ const app = new Vue({
   computed: {
     directories: {
       get() {
-        return Object.keys(this.tree)
+        return Object.keys(this.tree).sort()
       },
       set() {
-        return Object.keys(this.tree)
+        return Object.keys(this.tree).sort()
       }
     }
   },
@@ -48,30 +48,50 @@ const app = new Vue({
     const socket = io('http://localhost:3000')
 
     socket.on('init', ({ tree, directoryPaths }) => {
-      console.log('initial data', tree, directoryPaths);
-
-      this.tree = tree
+      this.tree = Object.assign({}, tree)
+      // Directory paths shouldn't change.
       this.directories = directoryPaths
     })
 
     socket.on('fileAdded', ({ filename, directory }) => {
-      // TODO
-      console.log('fileAdded')
+      this.addFile({ filename, directory })
     })
 
     socket.on('fileDeleted', ({ filename, directory }) => {
-      // TODO
+      this.removeFile({ filename, directory })
     })
 
     socket.on('directoryAdded', ({ directory }) => {
-      // TODO
+      this.addDirectory({ directory })
     })
 
     socket.on('directoryDeleted', ({ directory }) => {
-      // TODO
+      this.removeDirectory({ directory })
     })
   },
   methods: {
+    addFile({ filename, directory }) {
+      const update = {}
+      update[directory] = [...this.tree[directory], filename]
 
+      this.tree = Object.assign({}, this.tree, update)
+    },
+    removeFile({ filename, directory }) {
+      const update = {}
+      update[directory] = this.tree[directory].filter(fname => fname !== filename)
+
+      this.tree = Object.assign({}, this.tree, update)
+    },
+    addDirectory({ directory }) {
+      const update = {}
+      update[directory] = []
+
+      this.tree = Object.assign({}, this.tree, update)
+    },
+    removeDirectory({ directory }) {
+      const update = delete this.tree[directory]
+
+      this.tree = Object.assign({}, this.tree, update)
+    }
   }
 })
