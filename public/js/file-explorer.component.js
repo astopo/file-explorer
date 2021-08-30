@@ -11,7 +11,7 @@ Vue.component('file-item', {
       return JSON.stringify(this.tree[this.name])
     }
   }
-})
+});
 
 // Component to list a single directory
 Vue.component('directory-item', {
@@ -24,9 +24,9 @@ Vue.component('directory-item', {
       <file-item :name="file"></file-item>
     </div>
   </div>`
-})
+});
 
-
+// Initialize the Vue app.
 const app = new Vue({
   el: '#app',
   data: {
@@ -35,63 +35,63 @@ const app = new Vue({
   computed: {
     directories: {
       get() {
-        return Object.keys(this.tree).sort()
+        return Object.keys(this.tree).sort();
       },
       set() {
-        return Object.keys(this.tree).sort()
+        return Object.keys(this.tree).sort();
       }
     }
   },
   // On mounted, connect to the socket, grab initial state
   // Then listen for further changes.
   mounted() {
-    const socket = io('http://localhost:3000')
+    const socket = io('http://localhost:3000');
 
     socket.on('init', ({ tree, directoryPaths }) => {
-      this.tree = Object.assign({}, tree)
+      this.tree = Object.assign({}, tree);
       // Directory paths shouldn't change.
-      this.directories = directoryPaths
-    })
+      this.directories = directoryPaths;
+    });
 
     socket.on('fileAdded', ({ filename, directory }) => {
-      this.addFile({ filename, directory })
-    })
+      this.addFile({ filename, directory });
+    });
 
     socket.on('fileDeleted', ({ filename, directory }) => {
-      this.removeFile({ filename, directory })
-    })
+      this.removeFile({ filename, directory });
+    });
 
     socket.on('directoryAdded', ({ directory }) => {
-      this.addDirectory({ directory })
-    })
+      this.addDirectory({ directory });
+    });
 
     socket.on('directoryDeleted', ({ directory }) => {
-      this.removeDirectory({ directory })
-    })
+      this.removeDirectory({ directory });
+    });
   },
   methods: {
     addFile({ filename, directory }) {
-      const update = {}
-      update[directory] = [...this.tree[directory], filename]
+      const update = {};
+      update[directory] = [...this.tree[directory], filename];
 
-      this.tree = Object.assign({}, this.tree, update)
+      this.tree = Object.assign({}, this.tree, update);
     },
     removeFile({ filename, directory }) {
-      const update = {}
-      update[directory] = this.tree[directory].filter(fname => fname !== filename)
+      const update = {};
+      update[directory] = this.tree[directory].filter(fname => fname !== filename);
 
-      this.tree = Object.assign({}, this.tree, update)
+      this.tree = Object.assign({}, this.tree, update);
     },
     addDirectory({ directory }) {
-      const update = {}
-      update[directory] = []
+      const update = {};
+      update[directory] = [];
 
-      this.tree = Object.assign({}, this.tree, update)
+      this.tree = Object.assign({}, this.tree, update);
     },
     removeDirectory({ directory }) {
-      const update = delete this.tree[directory]
+      const update = delete this.tree[directory];
 
-      this.tree = Object.assign({}, this.tree, update)
+      this.tree = Object.assign({}, this.tree, update);
     }
   }
-})
+});
