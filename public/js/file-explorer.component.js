@@ -1,11 +1,9 @@
 'use strict';
 
 Vue.component('file-item', {
-  props: ['name', 'tree'],
+  props: ['name'],
   template: `<div>
-    File: {{ name }
-
-    Files: {{ files }}
+    File: {{ name }}
   </div>`,
   computed: {
     files() {
@@ -17,12 +15,14 @@ Vue.component('file-item', {
 
 // Component to list a single directory
 Vue.component('directory-item', {
-  props: ['name'],
+  props: ['name', 'files'],
   // TODO - add button to open/close
   template: `<div>
-    Item: {{ name }}
+    Directory: {{ name }}
 
-    <div></div>
+    <div v-for="file in files">
+      <file-item :name="file"></file-item>
+    </div>
   </div>`
 })
 

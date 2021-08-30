@@ -28,7 +28,7 @@
 <body>
   <div id="app">
     <div v-for="directory in directories">
-      <directory-item :name="directory" :tree="tree"></directory-item>
+      <directory-item :name="directory" :tree="tree" :files="tree[directory]"></directory-item>
     </div>
   </div>
 
