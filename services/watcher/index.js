@@ -2,6 +2,9 @@ const args = process.argv
 
 const chokidar = require('chokidar')
 
+/*
+ * A class for loading and watching changes in directories.
+ */
 class Watcher {
   constructor({ onFileAdded, onFileDeleted, onDirectoryAdded, onDirectoryDeleted }) {
     // The first 2 args are always node and the path to this file.
