@@ -4,13 +4,7 @@ Vue.component('file-item', {
   props: ['name'],
   template: `<div>
     File: {{ name }}
-  </div>`,
-  computed: {
-    files() {
-      console.log('this.tree', this.tree)
-      return JSON.stringify(this.tree[this.name])
-    }
-  }
+  </div>`
 });
 
 // Component to list a single directory
@@ -18,11 +12,16 @@ Vue.component('directory-item', {
   props: ['name', 'files'],
   // TODO - add button to open/close
   template: `<div>
-    Directory: {{ name }}
+    <div>
+      Directory: {{ name }}
+      <span v-if="files.length > 0">Open</span>
+    </div>
 
     <div v-for="file in files">
       <file-item :name="file"></file-item>
     </div>
+
+
   </div>`
 });
 
