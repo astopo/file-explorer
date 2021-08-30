@@ -2,7 +2,7 @@
   "name": "file-explorer",
   "version": "1.0.0",
   "description": "A \"vs-code like\" file explorer.",
-  "main": "file-ex\t",
+  "main": "file-explorer.js",
   "author": "astopo <amy.soetopo@gmail.com>",
   "license": "MIT",
   "dependencies": {
