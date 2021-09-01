@@ -9,12 +9,12 @@ Vue.component('file-item', {
 
 // Component to list a single directory
 Vue.component('directory-item', {
-  props: ['name', 'files'],
+  props: ['path', 'tree', 'subDirectories'],
   // TODO - add icon for open/close
   template: `<div>
     <div>
-      Directory: {{ name }}
-      <span v-if="files.length > 0" :click="toggleFiles()">
+      Directory: {{ directoryName }}
+      <span v-if="files.length > 0 || subDirectories.length > 0" :click="toggleContents()">
         <span v-if="isOpen">
           Close
         </span>
@@ -25,6 +25,14 @@ Vue.component('directory-item', {
     </div>
 
     <div v-if="isOpen">
+      <div v-for "subDirectory in subDirectories">
+        <directory-ite
+          :name="subDirectory"
+          :tree="tree"
+          :subdirectories="subdirectories"
+        >
+        </directory-item>
+      </div>
       <div v-for="file in files">
         <file-item :name="file"></file-item>
       </div>
@@ -33,8 +41,20 @@ Vue.component('directory-item', {
   data: {
     isOpen: false
   },
+  computed: {
+    directoryName() {
+      const parts = this.path.split('/')
+      return parts[parts.length - 1]
+    },
+    childDirectories() {
+      return this.subDirectories[this.path]
+    },
+    files() {
+      return this.tree[this.path]
+    }
+  },
   methods: {
-    toggleFiles() {
+    toggleContents() {
       this.isOpen = !this.isOpen
     }
   }
@@ -66,10 +86,9 @@ const app = new Vue({
             // It's a sub directory, so push it to the array of its parent
             const parts =  directory.split('/')
             const parent = parts.slice(0, parts.length -2).join('/')
-            const dirName = parts[parts.length - 1]
       
             tree[parent] = tree[parent] || []
-            tree[parent].push(dirName)
+            tree[parent].push(directory)
           }
       
           return tree
