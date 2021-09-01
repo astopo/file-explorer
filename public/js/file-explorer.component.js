@@ -14,15 +14,30 @@ Vue.component('directory-item', {
   template: `<div>
     <div>
       Directory: {{ name }}
-      <span v-if="files.length > 0">Open</span>
+      <span v-if="files.length > 0" :click="toggleFiles()">
+        <span v-if="isOpen">
+          Close
+        </span>
+        <span v-else>
+          Open
+        </span>
+      </span>
     </div>
 
-    <div v-for="file in files">
-      <file-item :name="file"></file-item>
+    <div v-if="isOpen">
+      <div v-for="file in files">
+        <file-item :name="file"></file-item>
+      </div>
     </div>
-
-
-  </div>`
+  </div>`,
+  data: {
+    isOpen: false
+  },
+  methods: {
+    toggleFiles() {
+      this.isOpen = !this.isOpen
+    }
+  }
 });
 
 // Initialize the Vue app.
