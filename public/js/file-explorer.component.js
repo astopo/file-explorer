@@ -10,7 +10,7 @@ Vue.component('file-item', {
 // Component to list a single directory
 Vue.component('directory-item', {
   props: ['name', 'files'],
-  // TODO - add button to open/close
+  // TODO - add icon for open/close
   template: `<div>
     <div>
       Directory: {{ name }}
@@ -44,7 +44,8 @@ Vue.component('directory-item', {
 const app = new Vue({
   el: '#app',
   data: {
-    tree: {}
+    tree: {},
+    directoryPaths: []
   },
   computed: {
     directories: {
@@ -54,6 +55,30 @@ const app = new Vue({
       set() {
         return Object.keys(this.tree).sort();
       }
+    },
+    subDirectories: {
+      get() {
+        return directories.reduce((tree, directory) => {
+          // It's a root directory, just initialize the array.
+          if (parents.includes(directory)) {
+            tree[directory] = []
+          } else {
+            // It's a sub directory, so push it to the array of its parent
+            const parts =  directory.split('/')
+            const parent = parts.slice(0, parts.length -2).join('/')
+            const dirName = parts[parts.length - 1]
+      
+            tree[parent] = tree[parent] || []
+            tree[parent].push(dirName)
+          }
+      
+          return tree
+        }, {})
+      },
+      // We never actually set this value...
+      set(value) {
+        return vlue
+      } 
     }
   },
   // On mounted, connect to the socket, grab initial state
@@ -64,7 +89,7 @@ const app = new Vue({
     socket.on('init', ({ tree, directoryPaths }) => {
       this.tree = Object.assign({}, tree);
       // Directory paths shouldn't change.
-      this.directories = directoryPaths;
+      this.directoryPaths = directoryPaths;
     });
 
     socket.on('fileAdded', ({ filename, directory }) => {
