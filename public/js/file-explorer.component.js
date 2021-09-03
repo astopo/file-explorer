@@ -25,11 +25,11 @@ Vue.component('directory-item', {
     </div>
 
     <div v-if="isOpen">
-      <div v-for "subDirectory in subDirectories">
-        <directory-ite
+      <div v-for="subDirectory in subDirectories">
+        <directory-item
           :name="subDirectory"
           :tree="tree"
-          :subdirectories="subdirectories"
+          :subDirectories="subDirectories"
         >
         </directory-item>
       </div>
@@ -78,9 +78,9 @@ const app = new Vue({
     },
     subDirectories: {
       get() {
-        return directories.reduce((tree, directory) => {
+        return this.directories.reduce((tree, directory) => {
           // It's a root directory, just initialize the array.
-          if (parents.includes(directory)) {
+          if (this.directoryPaths.includes(directory)) {
             tree[directory] = []
           } else {
             // It's a sub directory, so push it to the array of its parent
