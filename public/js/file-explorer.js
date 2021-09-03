@@ -2,10 +2,10 @@
 
 // Helper method to extract name only from a given path.
 function getNameFromPath(path) {
-  const parts = path.split('/')
-  const name = parts[parts.length - 1]
+  const parts = path.split('/');
+  const name = parts[parts.length - 1];
 
-  return name
+  return name;
 }
 
 // Store for shared state from scratch because this is a simple app.
@@ -18,80 +18,80 @@ const store = {
     subdirectories: {}
   },
   setDirectoryPaths(newValue) {
-    this.state.directoryPaths = newValue
+    this.state.directoryPaths = newValue;
   },
   updateTree (update) {
-    this.state.tree = Object.assign({}, this.state.tree, update)
+    this.state.tree = Object.assign({}, this.state.tree, update);
     // When the tree is updated, also update directories & subdirectories
-    this.setDirectories()
-    this.setSubdirectories()
+    this.setDirectories();
+    this.setSubdirectories();
 
-    this.setTreeview()
+    this.setTreeview();
   },
   setDirectories () {
-    this.state.directories = Object.keys(this.state.tree).sort()
+    this.state.directories = Object.keys(this.state.tree).sort();
   },
   setSubdirectories () {
     this.state.subdirectories = this.state.directories.reduce((tree, directory) => {
       // It's a root directory, just initialize the array.
       if (this.state.directoryPaths.includes(directory)) {
-        tree[directory] = []
+        tree[directory] = [];
       } else {
         // It's a sub directory, so push it to the array of its parent
-        const parts = directory.split('/')
-        const parent = parts.slice(0, parts.length - 1).join('/')
+        const parts = directory.split('/');
+        const parent = parts.slice(0, parts.length - 1).join('/');
 
-        tree[parent] = tree[parent] || []
-        tree[parent].push(directory)
+        tree[parent] = tree[parent] || [];
+        tree[parent].push(directory);
       }
 
-      return tree
-    }, {})
+      return tree;
+    }, {});
   },
   _getChildren({ directory, currentId }) {
-    const files = this.state.tree[directory] || []
-    const subdirectories = this.state.subdirectories[directory] || []
+    const files = this.state.tree[directory] || [];
+    const subdirectories = this.state.subdirectories[directory] || [];
 
     // Sort files by name, then format for the treeview
     const formattedFiles = files.sort().map(file => {
-      currentId = currentId + 1
+      currentId = currentId + 1;
 
       return {
         id: currentId,
         name: file,
         children: []
-      }
+      };
     })
 
     // Recursively get children for subdirs.
     const formattedDirectories = subdirectories.sort().map(currentDirectory => {
-      currentId = currentId + 1
-      const name = getNameFromPath(currentDirectory)
-      const children = this._getChildren({ directory: currentDirectory, currentId })
+      currentId = currentId + 1;
+      const name = getNameFromPath(currentDirectory);
+      const children = this._getChildren({ directory: currentDirectory, currentId });
 
       return {
         id: currentId,
         name,
         children
       }
-    })
+    });
 
-    return [...formattedDirectories, ...formattedFiles]
+    return [...formattedDirectories, ...formattedFiles];
   },
   // Formats our tree for Vuetify's component
   setTreeview() {
-    let currentId = 0
+    let currentId = 0;
 
     this.state.treeview = this.state.directoryPaths.reduce((treeview, currentDirectory) => {
-      currentId = currentId + 1
-      const name = getNameFromPath(currentDirectory)
+      currentId = currentId + 1;
+      const name = getNameFromPath(currentDirectory);
 
-      const currentItem = { id: currentId, name, children: [] }
+      const currentItem = { id: currentId, name, children: [] };
 
-      currentItem.children = this._getChildren({ directory: currentDirectory, currentId })
+      currentItem.children = this._getChildren({ directory: currentDirectory, currentId });
 
-      return [...treeview, currentItem]
-    }, [])
+      return [...treeview, currentItem];
+    }, []);
   }
 }
 
