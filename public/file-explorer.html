@@ -33,7 +33,11 @@
 
 <body>
   <div id="app">
-    <v-treeview :items="shared.treeview"></v-treeview>
+    <v-app>
+      <v-main>
+        <v-treeview :items="shared.treeview"></v-treeview>
+      </v-main>
+    </v-app>
   </div>
 
   <!-- Vuetify -->
