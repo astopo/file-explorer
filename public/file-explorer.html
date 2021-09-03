@@ -33,7 +33,8 @@
 
 <body>
   <div id="app">
-    <div v-for="directory in shared.directories">
+    <!-- Show top-level directories only here. -->
+    <div v-for="directory in shared.directoryPaths">
       <directory-item
         :path="directory"
       ></directory-item>
