@@ -1,9 +1,18 @@
 'use strict';
 
+// Helper method to extract name only from a given path.
+function getNameFromPath(path) {
+  const parts = path.split('/')
+  const name = parts[parts.length - 1]
+
+  return name
+}
+
 // Store for shared state from scratch because this is a simple app.
 const store = {
   state: {
     tree: {},
+    treeview: [],
     directoryPaths: [],
     directories: [],
     subdirectories: {}
@@ -16,6 +25,8 @@ const store = {
     // When the tree is updated, also update directories & subdirectories
     this.setDirectories()
     this.setSubdirectories()
+
+    this.setTreeview()
   },
   setDirectories () {
     this.state.directories = Object.keys(this.state.tree).sort()
@@ -36,72 +47,53 @@ const store = {
 
       return tree
     }, {})
+  },
+  _getChildren({ directory, currentId }) {
+    const files = this.state.tree[directory] || []
+    const subdirectories = this.state.subdirectories[directory] || []
+
+    const formattedFiles = files.map(file => {
+      currentId = currentId + 1
+
+      return {
+        id: currentId,
+        name: file,
+        children: []
+      }
+    })
+
+    // recursively get children for subdirs.
+    const formattedDirectories = subdirectories.map(currentDirectory => {
+      currentId = currentId + 1
+      const name = getNameFromPath(currentDirectory)
+      const children = this._getChildren({ directory: currentDirectory, currentId })
+
+      return {
+        id: currentId,
+        name,
+        children
+      }
+    })
+
+    // TODO - decide how to sort.
+    return [...formattedDirectories, ...formattedFiles]
+  },
+  // Formats our tree for Vuetify's component
+  setTreeview() {
+    let currentId = 0
+
+    this.state.treeview = this.state.directoryPaths.reduce((treeview, currentDirectory) => {
+      currentId = currentId + 1
+      const name = getNameFromPath(currentDirectory)
+
+      const currentItem = { id: currentId, name, children: [] }
+
+      currentItem.children = this._getChildren({ directory: currentDirectory, currentId })
+
+      return [...treeview, currentItem]
+    }, [])
   }
 }
-
-Vue.component('file-item', {
-  props: ['name'],
-  template: `<div>
-    File: {{ name }}
-  </div>`
-});
-
-// Component to list a single directory
-Vue.component('directory-item', {
-  props: ['path'],
-  template: `<div>
-    <div>
-      Directory: {{ directoryName }}
-      <button v-if="(files && files.length > 0) || (currentSubdirectories && currentSubdirectories.length > 0)" v-on:click="toggleContents()">
-        <span v-if="isOpen">
-          Close
-        </span>
-        <span v-else>
-          Open
-        </span>
-      </button>
-    </div>
-
-    <div v-if="isOpen">
-      <v-treeview :items="items"></v-treeview>
-    </div>
-  </div>`,
-  data: () => {
-    return {
-      isOpen: false,
-      shared: store.state
-    }
-  },
-  computed: {
-    directoryName() {
-      if (!this.path) return null
-      const parts = this.path.split('/')
-      return parts[parts.length - 1]
-    },
-    currentSubdirectories() {
-      return this.shared.subdirectories[this.path] || []
-    },
-    files() {
-      return this.shared.tree[this.path] || []
-    },
-    items() {
-      const allItems = [...this.files, ...this.currentSubdirectories]
-
-      return allItems.map((item, index) => {
-        return {
-          id: index,
-          name: item,
-          children: this.shared.tree[item] || []
-        }
-      });
-    }
-  },
-  methods: {
-    toggleContents() {
-      this.isOpen = !this.isOpen;
-    }
-  }
-});
 
 // Initialize the Vue app.
 const app = new Vue({
@@ -116,8 +108,8 @@ const app = new Vue({
     const socket = io('http://localhost:3000');
 
     socket.on('init', ({ tree, directoryPaths }) => {
-      store.updateTree(tree);
       store.setDirectoryPaths(directoryPaths);
+      store.updateTree(tree);
     });
 
     socket.on('fileAdded', ({ filename, directory }) => {
@@ -129,7 +121,6 @@ const app = new Vue({
     });
 
     socket.on('directoryAdded', ({ directory }) => {
-      console.log('adding dir')
       this.addDirectory({ directory });
     });
 

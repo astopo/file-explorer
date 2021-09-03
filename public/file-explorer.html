@@ -33,12 +33,7 @@
 
 <body>
   <div id="app">
-    <!-- Show top-level directories only here. -->
-    <div v-for="directory in shared.directoryPaths">
-      <directory-item
-        :path="directory"
-      ></directory-item>
-    </div>
+    <v-treeview :items="shared.treeview"></v-treeview>
   </div>
 
   <!-- Vuetify -->
