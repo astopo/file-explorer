@@ -52,7 +52,8 @@ const store = {
     const files = this.state.tree[directory] || []
     const subdirectories = this.state.subdirectories[directory] || []
 
-    const formattedFiles = files.map(file => {
+    // Sort files by name, then format for the treeview
+    const formattedFiles = files.sort().map(file => {
       currentId = currentId + 1
 
       return {
@@ -62,8 +63,8 @@ const store = {
       }
     })
 
-    // recursively get children for subdirs.
-    const formattedDirectories = subdirectories.map(currentDirectory => {
+    // Recursively get children for subdirs.
+    const formattedDirectories = subdirectories.sort().map(currentDirectory => {
       currentId = currentId + 1
       const name = getNameFromPath(currentDirectory)
       const children = this._getChildren({ directory: currentDirectory, currentId })
@@ -75,7 +76,6 @@ const store = {
       }
     })
 
-    // TODO - decide how to sort.
     return [...formattedDirectories, ...formattedFiles]
   },
   // Formats our tree for Vuetify's component
