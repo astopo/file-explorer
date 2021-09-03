@@ -28,7 +28,7 @@ const store = {
       } else {
         // It's a sub directory, so push it to the array of its parent
         const parts = directory.split('/')
-        const parent = parts.slice(0, parts.length -2).join('/')
+        const parent = parts.slice(0, parts.length - 1).join('/')
 
         tree[parent] = tree[parent] || []
         tree[parent].push(directory)
@@ -49,7 +49,6 @@ Vue.component('file-item', {
 // Component to list a single directory
 Vue.component('directory-item', {
   props: ['path'],
-  // TODO - add icon for open/close
   template: `<div>
     <div>
       Directory: {{ directoryName }}
@@ -64,15 +63,7 @@ Vue.component('directory-item', {
     </div>
 
     <div v-if="isOpen">
-      <div v-for="directory in currentSubdirectories">
-        <directory-item
-          :name="directory"
-        >
-        </directory-item>
-      </div>
-      <div v-for="file in files">
-        <file-item :name="file"></file-item>
-      </div>
+      <v-treeview :items="items"></v-treeview>
     </div>
   </div>`,
   data: () => {
@@ -88,10 +79,21 @@ Vue.component('directory-item', {
       return parts[parts.length - 1]
     },
     currentSubdirectories() {
-      return this.shared.subdirectories[this.path]
+      return this.shared.subdirectories[this.path] || []
     },
     files() {
-      return this.shared.tree[this.path]
+      return this.shared.tree[this.path] || []
+    },
+    items() {
+      const allItems = [...this.files, ...this.currentSubdirectories]
+
+      return allItems.map((item, index) => {
+        return {
+          id: index,
+          name: item,
+          children: this.shared.tree[item] || []
+        }
+      });
     }
   },
   methods: {
@@ -138,13 +140,13 @@ const app = new Vue({
   methods: {
     addFile({ filename, directory }) {
       const update = {};
-      update[directory] = [...this.store.tree[directory], filename];
+      update[directory] = [...this.shared.tree[directory], filename];
 
       store.updateTree(update);
     },
     removeFile({ filename, directory }) {
       const update = {};
-      update[directory] = this.store.tree[directory].filter(fname => fname !== filename);
+      update[directory] = this.shared.tree[directory].filter(fname => fname !== filename);
 
       store.updateTree(update);
     },
@@ -155,7 +157,7 @@ const app = new Vue({
       store.updateTree(update);
     },
     removeDirectory({ directory }) {
-      const update = delete this.store.tree[directory];
+      const update = delete this.shared.tree[directory];
 
       store.updateTree(update);
     }
