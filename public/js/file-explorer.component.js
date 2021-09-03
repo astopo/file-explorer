@@ -1,4 +1,6 @@
 'use strict';
+
+// Store for shared state from scratch because this is a simple app.
 const store = {
   state: {
     tree: {},
@@ -81,6 +83,7 @@ Vue.component('directory-item', {
   },
   computed: {
     directoryName() {
+      if (!this.path) return null
       const parts = this.path.split('/')
       return parts[parts.length - 1]
     },
@@ -93,7 +96,6 @@ Vue.component('directory-item', {
   },
   methods: {
     toggleContents() {
-      console.log('toggling')
       this.isOpen = !this.isOpen;
     }
   }
