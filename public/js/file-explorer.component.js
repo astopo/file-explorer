@@ -104,6 +104,7 @@ Vue.component('directory-item', {
 // Initialize the Vue app.
 const app = new Vue({
   el: '#app',
+  vuetify: new Vuetify(),
   data: {
     shared: store.state
   },
