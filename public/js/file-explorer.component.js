@@ -1,4 +1,41 @@
 'use strict';
+const store = {
+  state: {
+    tree: {},
+    directoryPaths: [],
+    directories: [],
+    subdirectories: {}
+  },
+  setDirectoryPaths(newValue) {
+    this.state.directoryPaths = newValue
+  },
+  updateTree (update) {
+    this.state.tree = Object.assign({}, this.state.tree, update)
+    // When the tree is updated, also update directories & subdirectories
+    this.setDirectories()
+    this.setSubdirectories()
+  },
+  setDirectories () {
+    this.state.directories = Object.keys(this.state.tree).sort()
+  },
+  setSubdirectories () {
+    this.state.subdirectories = this.state.directories.reduce((tree, directory) => {
+      // It's a root directory, just initialize the array.
+      if (this.state.directoryPaths.includes(directory)) {
+        tree[directory] = []
+      } else {
+        // It's a sub directory, so push it to the array of its parent
+        const parts = directory.split('/')
+        const parent = parts.slice(0, parts.length -2).join('/')
+
+        tree[parent] = tree[parent] || []
+        tree[parent].push(directory)
+      }
+
+      return tree
+    }, {})
+  }
+}
 
 Vue.component('file-item', {
   props: ['name'],
@@ -9,27 +46,25 @@ Vue.component('file-item', {
 
 // Component to list a single directory
 Vue.component('directory-item', {
-  props: ['path', 'tree', 'subDirectories'],
+  props: ['path'],
   // TODO - add icon for open/close
   template: `<div>
     <div>
       Directory: {{ directoryName }}
-      <span v-if="files.length > 0 || subDirectories.length > 0" :click="toggleContents()">
+      <button v-if="(files && files.length > 0) || (currentSubdirectories && currentSubdirectories.length > 0)" v-on:click="toggleContents()">
         <span v-if="isOpen">
           Close
         </span>
         <span v-else>
           Open
         </span>
-      </span>
+      </button>
     </div>
 
     <div v-if="isOpen">
-      <div v-for="subDirectory in subDirectories">
+      <div v-for="directory in currentSubdirectories">
         <directory-item
-          :name="subDirectory"
-          :tree="tree"
-          :subDirectories="subDirectories"
+          :name="directory"
         >
         </directory-item>
       </div>
@@ -38,24 +73,28 @@ Vue.component('directory-item', {
       </div>
     </div>
   </div>`,
-  data: {
-    isOpen: false
+  data: () => {
+    return {
+      isOpen: false,
+      shared: store.state
+    }
   },
   computed: {
     directoryName() {
       const parts = this.path.split('/')
       return parts[parts.length - 1]
     },
-    childDirectories() {
-      return this.subDirectories[this.path]
+    currentSubdirectories() {
+      return this.shared.subdirectories[this.path]
     },
     files() {
-      return this.tree[this.path]
+      return this.shared.tree[this.path]
     }
   },
   methods: {
     toggleContents() {
-      this.isOpen = !this.isOpen
+      console.log('toggling')
+      this.isOpen = !this.isOpen;
     }
   }
 });
@@ -64,41 +103,7 @@ Vue.component('directory-item', {
 const app = new Vue({
   el: '#app',
   data: {
-    tree: {},
-    directoryPaths: []
-  },
-  computed: {
-    directories: {
-      get() {
-        return Object.keys(this.tree).sort();
-      },
-      set() {
-        return Object.keys(this.tree).sort();
-      }
-    },
-    subDirectories: {
-      get() {
-        return this.directories.reduce((tree, directory) => {
-          // It's a root directory, just initialize the array.
-          if (this.directoryPaths.includes(directory)) {
-            tree[directory] = []
-          } else {
-            // It's a sub directory, so push it to the array of its parent
-            const parts =  directory.split('/')
-            const parent = parts.slice(0, parts.length -2).join('/')
-      
-            tree[parent] = tree[parent] || []
-            tree[parent].push(directory)
-          }
-      
-          return tree
-        }, {})
-      },
-      // We never actually set this value...
-      set(value) {
-        return vlue
-      } 
-    }
+    shared: store.state
   },
   // On mounted, connect to the socket, grab initial state
   // Then listen for further changes.
@@ -106,9 +111,8 @@ const app = new Vue({
     const socket = io('http://localhost:3000');
 
     socket.on('init', ({ tree, directoryPaths }) => {
-      this.tree = Object.assign({}, tree);
-      // Directory paths shouldn't change.
-      this.directoryPaths = directoryPaths;
+      store.updateTree(tree);
+      store.setDirectoryPaths(directoryPaths);
     });
 
     socket.on('fileAdded', ({ filename, directory }) => {
@@ -120,6 +124,7 @@ const app = new Vue({
     });
 
     socket.on('directoryAdded', ({ directory }) => {
+      console.log('adding dir')
       this.addDirectory({ directory });
     });
 
@@ -130,26 +135,26 @@ const app = new Vue({
   methods: {
     addFile({ filename, directory }) {
       const update = {};
-      update[directory] = [...this.tree[directory], filename];
+      update[directory] = [...this.store.tree[directory], filename];
 
-      this.tree = Object.assign({}, this.tree, update);
+      store.updateTree(update);
     },
     removeFile({ filename, directory }) {
       const update = {};
-      update[directory] = this.tree[directory].filter(fname => fname !== filename);
+      update[directory] = this.store.tree[directory].filter(fname => fname !== filename);
 
-      this.tree = Object.assign({}, this.tree, update);
+      store.updateTree(update);
     },
     addDirectory({ directory }) {
       const update = {};
       update[directory] = [];
 
-      this.tree = Object.assign({}, this.tree, update);
+      store.updateTree(update);
     },
     removeDirectory({ directory }) {
-      const update = delete this.tree[directory];
+      const update = delete this.store.tree[directory];
 
-      this.tree = Object.assign({}, this.tree, update);
+      store.updateTree(update);
     }
   }
 });

@@ -27,11 +27,9 @@
 
 <body>
   <div id="app">
-    <div v-for="directory in directories">
+    <div v-for="directory in shared.directories">
       <directory-item
         :path="directory"
-        :tree="tree"
-        :subDirectories="subDirectories"
       ></directory-item>
     </div>
   </div>
