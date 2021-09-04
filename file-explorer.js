@@ -30,7 +30,7 @@ io.on('connection', (socket) => {
 
 // Start the server.
 server.listen(3000, () => {
-  console.log('Server listening on *:3000');
+  console.log('Server listening on *:3000. Navigate to localhost:3000 in your browser.');
 })
 
 

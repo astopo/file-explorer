@@ -10,7 +10,6 @@ class Watcher {
     // The first 2 args are always node and the path to this file.
     // We only care about the args thereafter.
     this._directoryPaths = args.slice(2, args.length)
-    console.log(this._directoryPaths)
     this.watcher = null
 
     // We track our own tree for when clients first connect
@@ -42,12 +41,10 @@ class Watcher {
       .on('addDir', path => this.onAddDir(path))
       .on('unlinkDir', path => this.onUnlinkDir(path))
       .on('error', error => this.onError(error))
-      .on('ready', () => console.log('Initial scan complete. Ready for changes tree:', this._tree))
+      .on('ready', () => console.log('Initial scan complete. Ready for changes.'))
   }
 
   onAdd(path) {
-    console.log(`path ${path} added`)
-
     const { filename, directory } =this._getFilePathAndDirectory(path)
 
     this._tree[directory] = this._tree[directory] || []
@@ -57,7 +54,7 @@ class Watcher {
   }
 
   onChange(path) {
-    console.log(`path ${path} changed`)
+    // console.log(`path ${path} changed`)
     // This is irrelevant to the tree if the contents of a file are changed, do nothing.
   }
 
@@ -65,8 +62,6 @@ class Watcher {
   // Only need to remove it from the tree because
   // if it was renamed, the 'add' event will also fire
   onUnlink(path) {
-    console.log(`path ${path} unlinked`)
-
     const { filename, directory } = this._getFilePathAndDirectory(path)
 
     this._tree[directory] = this._tree[directory].filter(fname => fname !== filename)
@@ -75,7 +70,6 @@ class Watcher {
   }
 
   onAddDir(path) {
-    console.log(`Directory ${path} has been added`)
     // Add a key to the tree
     this._tree[path] = []
 
@@ -83,7 +77,6 @@ class Watcher {
   }
 
   onUnlinkDir(path) {
-    console.log(`Directory ${path} has been removed`)
     // Remove the directory from the tree.
     delete this._tree[path]
 
