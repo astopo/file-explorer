@@ -17,3 +17,5 @@ yarn install
 ```
 node ./file-explorer.js PATH_TO_DIRECTORY_1 PATH_TO_DIRECTORY_2
 ```
+
+Open up the file explorer at `localhost:3000`.
