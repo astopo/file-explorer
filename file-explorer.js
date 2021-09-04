@@ -23,7 +23,6 @@ app.get('/', (req, res) => {
 
 // Have the websocket server ready to handle new connections
 io.on('connection', (socket) => {
-  console.log('a user connected')
   // Send the current tree and directoryPaths.
   socket.emit('init', { tree: watcher.tree, directoryPaths: watcher.directoryPaths })
 })
